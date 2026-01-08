@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Apps</title>
+
+    <!-- --- การตั้งค่า PWA และ Fullscreen --- -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="My Apps">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/jpeg" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
+    <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Babel สำหรับแปลง JSX ใน Browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- React & ReactDOM via ESM -->
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18.2.0",
+                "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+                "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            overscroll-behavior-y: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animation Utilities */
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+    </style>
+</head>
+<body class="bg-black text-white h-screen overflow-hidden">
+    <div id="root"></div>
+
+    <!-- เปลี่ยน type เป็น text/babel และเพิ่ม data-type="module" -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            Plus, X, Trash2, Settings, Menu, Folder, LayoutGrid, 
+            Briefcase, Coffee, Music, Zap, Clock, Heart, 
+            Palette, Download, Upload, RotateCcw, Monitor, Check,
+            Star, User, Building, MapPin, Calendar as CalendarIcon,
+            Grid, List, ChevronLeft, ChevronRight, Minimize, Maximize,
+            Award, Quote, FileText, GraduationCap, Phone, Mail, Globe, Facebook,
+            Eye, Lightbulb, Bell, Search, Link, RefreshCw,
+            Database, BookOpen, MessageCircle, MoreHorizontal
+        } from 'lucide-react';
+
+        const WebAppLauncher = () => {
+            const LOGO_URL = "https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg";
+            const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQr2K1V0RWB19VkP2_zRh2WW2fwrGO9Ij6JktL_6taysLNCICz-IKYRZnO6n0VsJIJnNmb-U0nXL9UW/pub?gid=0&single=true&output=csv";
+
+            const thaiHolidays = {
+                "1-1": "วันขึ้นปีใหม่", "14-2": "วันวาเลนไทน์", "6-4": "วันจักรี",
+                "13-4": "วันสงกรานต์", "14-4": "วันสงกรานต์", "15-4": "วันสงกรานต์",
+                "1-5": "วันแรงงานแห่งชาติ", "4-5": "วันฉัตรมงคล", "3-6": "วันเฉลิมพระชนมพรรษาพระราชินี",
+                "28-7": "วันเฉลิมพระชนมพรรษา ร.10", "12-8": "วันแม่แห่งชาติ", "13-10": "วันคล้ายวันสวรรคต ร.9",
+                "23-10": "วันปิยมหาราช", "5-12": "วันพ่อแห่งชาติ", "10-12": "วันรัฐธรรมนูญ", "31-12": "วันสิ้นปี"
+            };
+
+            const themes = {
+                dark: { id: 'dark', name: 'OLED Black', colors: { '--bg-main': '#000000', '--bg-sidebar': '#000000', '--bg-header': '#000000', '--text-main': '#E5E5E5', '--text-header': '#FFFFFF', '--text-muted': '#A1A1AA', '--primary': '#18181B', '--accent': '#3B82F6', '--border': '#27272A' } },
+                sage: { id: 'sage', name: 'Sage Green', colors: { '--bg-main': '#E0E8DF', '--bg-sidebar': '#FDF7E4', '--bg-header': '#40513B', '--text-main': '#2F4F4F', '--text-header': '#FDF7E4', '--text-muted': '#5D8A66', '--primary': '#40513B', '--accent': '#B25068', '--border': '#9DC08B' } },
+                eyecare: { id: 'eyecare', name: 'Eye Care', colors: { '--bg-main': '#F2E6D6', '--bg-sidebar': '#E8DCCA', '--bg-header': '#4E342E', '--text-main': '#3E2723', '--text-header': '#F2E6D6', '--text-muted': '#8D6E63', '--primary': '#6D4C41', '--accent': '#D84315', '--border': '#BCAAA4' } },
+                ocean: { id: 'ocean', name: 'Ocean Mist', colors: { '--bg-main': '#E6F4F1', '--bg-sidebar': '#F0FCF8', '--bg-header': '#4A7C8F', '--text-main': '#2C4A52', '--text-header': '#F0FCF8', '--text-muted': '#6B9096', '--primary': '#4A7C8F', '--accent': '#E07A5F', '--border': '#A4D0D0' } },
+                rose: { id: 'rose', name: 'Old Rose', colors: { '--bg-main': '#F4E4E4', '--bg-sidebar': '#FFF5F5', '--bg-header': '#8E5555', '--text-main': '#5C3D3D', '--text-header': '#FFF5F5', '--text-muted': '#A87C7C', '--primary': '#8E5555', '--accent': '#D47E7E', '--border': '#C9A9A9' } },
+                paper: { id: 'paper', name: 'Antique Paper', colors: { '--bg-main': '#F0EAD6', '--bg-sidebar': '#FAF9F6', '--bg-header': '#8B5A2B', '--text-main': '#4B3621', '--text-header': '#FAF9F6', '--text-muted': '#8D7B68', '--primary': '#8B5A2B', '--accent': '#CD853F', '--border': '#D2B48C' } }
+            };
+
+            const defaultApps = [
+                { id: 1, name: 'Google', url: 'https://www.google.com', icon: 'https://www.google.com/favicon.ico', category: 'Knowledge' },
+                { id: 2, name: 'YouTube', url: 'https://www.youtube.com', icon: 'https://www.youtube.com/s/desktop/10c3c403/img/favicon_144x144.png', category: 'Entertainment' },
+                { id: 3, name: 'Facebook', url: 'https://www.facebook.com', icon: 'https://static.xx.fbcdn.net/rsrc.php/yD/r/d4ZIVX-5C-b.ico', category: 'Social' },
+                { id: 4, name: 'Instagram', url: 'https://www.instagram.com', icon: 'https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHk_8a.png', category: 'Social' },
+                { id: 5, name: 'Netflix', url: 'https://www.netflix.com', icon: 'https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico', category: 'Entertainment' },
+                { id: 6, name: 'ChatGPT', url: 'https://chat.openai.com', icon: 'https://chat.openai.com/favicon.ico', category: 'Tools' }
+            ];
+
+            const categories = [
+                { id: 'Data', name: 'ข้อมูล', icon: <Database size={18} /> },
+                { id: 'Work', name: 'การทำงาน', icon: <Briefcase size={18} /> },
+                { id: 'Knowledge', name: 'ความรู้', icon: <BookOpen size={18} /> },
+                { id: 'Tools', name: 'เครื่องมือ', icon: <Zap size={18} /> },
+                { id: 'Social', name: 'โซเชียล', icon: <MessageCircle size={18} /> },
+                { id: 'Entertainment', name: 'บันเทิง', icon: <Music size={18} /> },
+                { id: 'Others', name: 'อื่นๆ', icon: <MoreHorizontal size={18} /> },
+                { id: 'All', name: 'ทั้งหมด', icon: <LayoutGrid size={18} /> }
+            ];
+
+            // States
+            const [apps, setApps] = useState(() => JSON.parse(localStorage.getItem('myapp_data_v9')) || defaultApps);
+            const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('myapp_theme_v9') || 'dark');
+            const [config, setConfig] = useState(() => JSON.parse(localStorage.getItem('myapp_config_v9')) || { clock24h: true, animations: true, layout: 'grid', sheetUrl: DEFAULT_SHEET_URL });
+            
+            const [view, setView] = useState('apps');
+            const [aboutTab, setAboutTab] = useState('work');
+            const [selectedCategory, setSelectedCategory] = useState('Data');
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [isEditMode, setIsEditMode] = useState(false);
+            const [currentTime, setCurrentTime] = useState(new Date());
+
+            const [showLargeCalendar, setShowLargeCalendar] = useState(false);
+            const [calendarDate, setCalendarDate] = useState(new Date());
+            const [selectedDateEvents, setSelectedDateEvents] = useState(null);
+            const [clockMode, setClockMode] = useState(0);
+            
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [newAppName, setNewAppName] = useState('');
+            const [newAppUrl, setNewAppUrl] = useState('');
+            const [newAppIcon, setNewAppIcon] = useState('');
+            const [newAppCategory, setNewAppCategory] = useState('Tools');
+
+            useEffect(() => { localStorage.setItem('myapp_data_v9', JSON.stringify(apps)); }, [apps]);
+            useEffect(() => { localStorage.setItem('myapp_theme_v9', currentTheme); }, [currentTheme]);
+            useEffect(() => { localStorage.setItem('myapp_config_v9', JSON.stringify(config)); }, [config]);
+            
+            useEffect(() => {
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            useEffect(() => {
+                if(config.sheetUrl) fetchAppsFromSheet(config.sheetUrl, false);
+            }, []);
+
+            const fetchAppsFromSheet = async (url, showAlert = true) => {
+                if (!url) return;
+                setIsSyncing(true);
+                try {
+                    const response = await fetch(url);
+                    const text = await response.text();
+                    const rows = text.split('\n').slice(1);
+                    const newSheetApps = rows.map((row, index) => {
+                        const cols = row.split(',');
+                        if (cols.length < 2) return null;
+                        const clean = (str) => str ? str.trim().replace(/^"|"$/g, '') : '';
+                        return { id: `sheet-${index}`, name: clean(cols[0]) || 'No Name', url: clean(cols[1]) || '#', icon: clean(cols[2]) || '', category: clean(cols[3]) || 'Tools' };
+                    }).filter(item => item !== null && item.name && item.url);
+
+                    if (newSheetApps.length > 0) {
+                        setApps(newSheetApps);
+                        if (showAlert) alert(`ซิงค์สำเร็จ! ${newSheetApps.length} รายการ`);
+                    } else if (showAlert) alert('ไม่พบข้อมูลใน CSV');
+                } catch (error) { console.error(error); if (showAlert) alert('เกิดข้อผิดพลาดในการดึงข้อมูล'); }
+                finally { setIsSyncing(false); }
+            };
+
+            const handleAddApp = (e) => {
+                e.preventDefault();
+                setApps([...apps, { id: Date.now(), name: newAppName, url: newAppUrl, icon: newAppIcon, category: newAppCategory }]);
+                setNewAppName(''); setNewAppUrl(''); setNewAppIcon(''); setIsModalOpen(false);
+            };
+
+            const handleReset = () => {
+                if(confirm('รีเซ็ตข้อมูลทั้งหมด?')) {
+                    setApps(defaultApps); setCurrentTheme('dark');
+                    const resetConfig = { clock24h: true, animations: true, layout: 'grid', sheetUrl: DEFAULT_SHEET_URL };
+                    setConfig(resetConfig);
+                    setTimeout(() => fetchAppsFromSheet(DEFAULT_SHEET_URL, false), 500);
+                }
+            };
+
+            const filteredApps = apps.filter(app => (selectedCategory === 'All' || app.category === selectedCategory));
+            const themeStyles = themes[currentTheme].colors;
+            const getDaysInMonth = (date) => {
+                const year = date.getFullYear(), month = date.getMonth();
+                const days = new Date(year, month + 1, 0).getDate();
+                const firstDay = new Date(year, month, 1).getDay();
+                return { days, firstDay, year, month };
+            };
+            const getEventForDate = (day, month) => thaiHolidays[`${day}-${month + 1}`];
+
+            const ClockWidget = () => {
+                const seconds = currentTime.getSeconds(), minutes = currentTime.getMinutes(), hours = currentTime.getHours();
+                const secDeg = seconds * 6, minDeg = minutes * 6 + seconds * 0.1, hourDeg = (hours % 12) * 30 + minutes * 0.5;
+                return (
+                    <div onClick={() => setClockMode((prev) => (prev + 1) % 3)} className="col-span-2 md:col-span-3 lg:col-span-3 row-span-1 h-48 md:h-52 p-6 rounded-3xl flex items-center justify-center relative overflow-hidden group border shadow-sm cursor-pointer select-none" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
+                        <div className="absolute top-4 right-4 opacity-30 transition-opacity group-hover:opacity-100"><Clock size={20} style={{ color: 'var(--accent)' }} /></div>
+                        {clockMode === 0 && (
+                            <div className="flex flex-col items-center md:items-start w-full animate-in fade-in zoom-in duration-300">
+                                <p className="text-sm md:text-base font-medium opacity-70 mb-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</div>
+                                <div className="h-1.5 w-24 bg-gradient-to-r from-[var(--accent)] to-transparent rounded-full mt-4 opacity-60"></div>
+                            </div>
+                        )}
+                        {clockMode === 1 && (
+                            <div className="relative w-32 h-32 md:w-40 md:h-40 animate-in spin-in-12 duration-500">
+                                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
+                                    <circle cx="50" cy="50" r="48" fill="var(--bg-sidebar)" stroke="var(--border)" strokeWidth="2" />
+                                    {[...Array(12)].map((_, i) => (<line key={i} x1="50" y1="6" x2="50" y2={i % 3 === 0 ? "12" : "8"} transform={`rotate(${i * 30} 50 50)`} stroke="var(--text-muted)" strokeWidth={i % 3 === 0 ? "3" : "1"} />))}
+                                    <line x1="50" y1="50" x2="50" y2="25" stroke="var(--text-header)" strokeWidth="4" strokeLinecap="round" transform={`rotate(${hourDeg} 50 50)`} />
+                                    <line x1="50" y1="50" x2="50" y2="15" stroke="var(--text-main)" strokeWidth="3" strokeLinecap="round" transform={`rotate(${minDeg} 50 50)`} />
+                                    <line x1="50" y1="50" x2="50" y2="10" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" transform={`rotate(${secDeg} 50 50)`} />
+                                    <circle cx="50" cy="50" r="3" fill="var(--accent)" />
+                                </svg>
+                            </div>
+                        )}
+                        {clockMode === 2 && (
+                            <div className="flex flex-col items-center animate-in slide-in-from-bottom-4 duration-300">
+                                <div className="text-6xl md:text-8xl font-bold tracking-widest font-mono" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}</div>
+                                <div className="text-xl md:text-2xl font-mono opacity-80 mt-2" style={{ color: 'var(--accent)' }}>{currentTime.getSeconds().toString().padStart(2, '0')}</div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const CalendarWidget = () => (
+                <div onClick={() => { if (!showLargeCalendar) { setCalendarDate(new Date()); setSelectedDateEvents(null); } setShowLargeCalendar(!showLargeCalendar); }} className={`col-span-2 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52 p-6 rounded-3xl flex flex-col items-center justify-center border shadow-sm cursor-pointer transition-all active:scale-95 ${showLargeCalendar ? 'ring-2 ring-[var(--accent)] bg-[var(--primary)]' : 'hover:brightness-110'}`} style={{ backgroundColor: showLargeCalendar ? 'var(--primary)' : 'var(--bg-sidebar)', borderColor: 'var(--border)' }} title="ปิดปฏิทิน">
+                    <div className="flex flex-col items-center">
+                        <span className="text-xs uppercase font-bold tracking-widest opacity-60 mb-1" style={{ color: 'var(--text-muted)' }}>{currentTime.toLocaleDateString('en-US', { month: 'long' })}</span>
+                        <span className="text-5xl md:text-6xl font-bold leading-none" style={{ color: 'var(--accent)' }}>{currentTime.getDate()}</span>
+                        <span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long' })}</span>
+                        {getEventForDate(currentTime.getDate(), currentTime.getMonth()) && (<div className="mt-2 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--accent)] text-white"><Star size={8} fill="currentColor" /> วันสำคัญ</div>)}
+                    </div>
+                </div>
+            );
+
+            const LargeCalendar = () => {
+                const { days, firstDay, year, month } = getDaysInMonth(calendarDate);
+                const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+                const today = new Date();
+                
+                return (
+                    <div className="rounded-3xl border p-6 animate-in fade-in zoom-in duration-300 h-auto min-h-[400px] flex flex-col relative" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="w-8"></div>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setCalendarDate(new Date(year, month - 1))} className="p-1 hover:text-[var(--accent)] transition" style={{ color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
+                                <h2 className="text-xl font-bold font-serif" style={{ color: 'var(--text-header)' }}>{monthNames[month]} {year + 543}</h2>
+                                <button onClick={() => setCalendarDate(new Date(year, month + 1))} className="p-1 hover:text-[var(--accent)] transition" style={{ color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
+                            </div>
+                            <div className="w-8"></div>
+                        </div>
+                        <div className="grid grid-cols-7 text-center mb-2">{['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map((d, i) => (<div key={i} className="text-xs font-bold opacity-60 py-2" style={{ color: i === 0 || i === 6 ? 'var(--accent)' : 'var(--text-main)' }}>{d}</div>))}</div>
+                        <div className="grid grid-cols-7 gap-1 text-center flex-grow">
+                            {[...Array(firstDay)].map((_, i) => <div key={`empty-${i}`} />)}
+                            {[...Array(days)].map((_, i) => {
+                                const day = i + 1;
+                                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                                const eventName = getEventForDate(day, month);
+                                return (
+                                    <div key={day} onClick={() => { if (eventName) { setSelectedDateEvents({day, month, year, name: eventName}); } }} className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all relative ${isToday ? 'font-bold shadow-lg bg-[var(--accent)] text-white' : 'hover:bg-white/5'} ${eventName ? 'cursor-pointer hover:scale-110' : ''} ${eventName && !isToday ? 'border border-[var(--accent)]' : ''}`} style={{ color: isToday ? '#fff' : 'var(--text-main)' }}>
+                                        {day}
+                                        {eventName && (<div className={`w-1.5 h-1.5 rounded-full mt-1 ${isToday ? 'bg-white' : 'bg-[var(--accent)]'}`}></div>)}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {selectedDateEvents && (
+                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl animate-in fade-in duration-200" onClick={() => setSelectedDateEvents(null)}>
+                                <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] p-6 rounded-2xl shadow-2xl max-w-xs w-full mx-4 text-center transform scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'var(--bg-sidebar)' }}>
+                                    <div className="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center mx-auto mb-3 text-[var(--accent)]"><Bell size={24} /></div>
+                                    <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--text-header)' }}>{selectedDateEvents.day} {monthNames[selectedDateEvents.month]} {selectedDateEvents.year + 543}</h3>
+                                    <div className="h-1 w-12 bg-[var(--accent)] rounded-full mx-auto mb-4 opacity-50"></div>
+                                    <p className="text-base font-medium mb-6" style={{ color: 'var(--text-main)' }}>{selectedDateEvents.name}</p>
+                                    <button onClick={() => setSelectedDateEvents(null)} className="px-6 py-2 rounded-full font-bold text-sm transition-transform active:scale-95 shadow-md" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>ปิด</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            return (
+                <div className={`flex flex-col h-screen overflow-hidden font-sans transition-colors duration-500`} style={themeStyles}>
+                    <header className="h-16 flex items-center justify-between px-4 md:px-6 shadow-md z-40 flex-shrink-0 transition-colors duration-300" style={{ backgroundColor: 'var(--bg-header)', color: 'var(--text-header)', borderBottom: '1px solid var(--border)' }}>
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-1 hover:bg-white/10 rounded"><Menu size={24} /></button>
+                            <div className="flex items-center gap-3">
+                                <img src={LOGO_URL} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-[var(--border)] shadow-sm"/>
+                                <span className="text-xl font-bold font-serif tracking-wide hidden sm:block">My Apps</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border border-[var(--border)] bg-white/5 text-[var(--text-main)]">
+                                <span className="flex items-center gap-1 pr-2 mr-2 border-r border-[var(--border)] opacity-90"><CalendarIcon size={12} className="text-[var(--accent)]" /><span>{currentTime.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span></span>
+                                <div className="flex items-center gap-1 font-mono"><span>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</span></div>
+                            </div>
+                            {view === 'apps' && !config.sheetUrl && (
+                                <button onClick={() => setIsEditMode(!isEditMode)} className={`w-8 h-8 rounded-full flex items-center justify-center border-2 hover:bg-white/10 transition-colors ${isEditMode ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : 'bg-[var(--bg-sidebar)] border-[var(--border)] text-[var(--text-main)]'}`} title="แก้ไข/ลบแอพ">
+                                    <Plus size={16} className={isEditMode ? "rotate-45" : ""} />
+                                </button>
+                            )}
+                            <button onClick={() => { setConfig({...config, layout: config.layout === 'grid' ? 'bento' : 'grid'}); }} className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--bg-sidebar)] border-2 hover:bg-white/10" style={{ borderColor: 'var(--border)' }} title="เปลี่ยนมุมมอง">
+                                {config.layout === 'grid' ? <LayoutGrid size={16} style={{ color: 'var(--text-main)' }} /> : <Grid size={16} style={{ color: 'var(--accent)' }} />}
+                            </button>
+                            <button onClick={() => setView('settings')} className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--bg-sidebar)] border-2 hover:bg-white/10" style={{ borderColor: 'var(--accent)' }} title="ตั้งค่า">
+                                <Settings size={16} style={{ color: 'var(--text-main)' }} />
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="flex flex-grow overflow-hidden relative">
+                        <aside className={`fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 flex flex-col mt-16 md:mt-0 h-[calc(100vh-4rem)] md:h-auto shadow-xl md:shadow-none border-r`} style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                            <nav className="flex-grow p-4 space-y-1 overflow-y-auto">
+                                <div className="pb-2 pl-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--text-muted)' }}><Star size={10} className="text-[var(--accent)]" /> เมนูหลัก</div>
+                                {categories.map((cat) => (
+                                    <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setView('apps'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm mb-1 ${view === 'apps' && selectedCategory === cat.id ? 'border-l-4 shadow-sm' : 'border-l-4 border-transparent opacity-70 hover:opacity-100'}`} style={{ backgroundColor: view === 'apps' && selectedCategory === cat.id ? 'var(--primary)' : 'transparent', color: view === 'apps' && selectedCategory === cat.id ? 'var(--text-header)' : 'var(--text-main)', borderColor: view === 'apps' && selectedCategory === cat.id ? 'var(--accent)' : 'transparent' }}>
+                                        <span style={{ color: view === 'apps' && selectedCategory === cat.id ? 'var(--accent)' : 'var(--text-muted)' }}>{cat.icon}</span>{cat.name}
+                                    </button>
+                                ))}
+                                <div className="my-4 border-t" style={{ borderColor: 'var(--border)' }}></div>
+                                <button onClick={() => { setView('about'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm ${view === 'about' ? 'border-l-4' : 'border-l-4 border-transparent opacity-70'}`} style={{ backgroundColor: view === 'about' ? 'var(--primary)' : 'transparent', color: view === 'about' ? 'var(--text-header)' : 'var(--text-main)', borderColor: view === 'about' ? 'var(--accent)' : 'transparent' }}>
+                                    <User size={18} style={{ color: view === 'about' ? 'var(--accent)' : 'var(--text-muted)' }} /> เกี่ยวกับฉัน
+                                </button>
+                            </nav>
+                        </aside>
+
+                        <div className="flex-grow flex flex-col h-full overflow-hidden relative w-full" style={{ backgroundColor: 'var(--bg-main)', backgroundImage: currentTheme === 'dark' ? 'none' : 'radial-gradient(var(--text-muted) 0.5px, transparent 0.5px)', backgroundSize: '32px 32px' }}>
+                            {isSidebarOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 md:hidden mt-16" onClick={() => setIsSidebarOpen(false)}></div>}
+
+                            {view === 'apps' && (
+                                <main className="flex-grow p-4 md:p-8 overflow-y-auto">
+                                    {config.layout === 'bento' && (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mb-8">
+                                            <ClockWidget />
+                                            <div className="col-span-2 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52" onClick={() => setShowLargeCalendar(!showLargeCalendar)}>
+                                                <CalendarWidget />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {config.layout === 'bento' && (
+                                        <div className="flex items-center gap-2 mb-4 opacity-70 pl-1" style={{ color: 'var(--text-muted)' }}>
+                                            {showLargeCalendar ? <CalendarIcon size={14} /> : <LayoutGrid size={14} />} 
+                                            <span className="text-xs font-bold uppercase tracking-wider">{showLargeCalendar ? 'ปฏิทินของฉัน' : 'แอพพลิเคชัน'}</span>
+                                            <div className="h-[1px] flex-grow opacity-30" style={{ backgroundColor: 'var(--border)' }}></div>
+                                        </div>
+                                    )}
+
+                                    {showLargeCalendar ? (
+                                        <div className="w-full max-w-4xl mx-auto mb-8"><LargeCalendar /></div>
+                                    ) : (
+                                        <div className={`grid gap-4 md:gap-6 pb-20 ${config.layout === 'bento' ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7' : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7'}`}>
+                                            {filteredApps.map((app) => (
+                                                <div key={app.id} className="relative flex flex-col items-center justify-center group">
+                                                    {isEditMode && (<button onClick={() => { if(confirm('ลบแอพ?')) setApps(apps.filter(a => a.id !== app.id)); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md z-20 animate-bounce"><Trash2 size={14} /></button>)}
+                                                    <button onClick={() => !isEditMode && window.open(app.url, '_blank')} className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 overflow-hidden border ${isEditMode ? 'animate-pulse' : config.animations ? 'hover:-translate-y-1 hover:shadow-lg' : ''}`} style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)', boxShadow: currentTheme === 'dark' ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                                        <img src={app.icon} alt={app.name} className="w-10 h-10 md:w-12 md:h-12 object-contain" onError={(e)=>e.target.src='https://via.placeholder.com/64'} />
+                                                    </button>
+                                                    <span className="mt-2 text-xs font-bold truncate w-full text-center" style={{ color: 'var(--text-main)' }}>{app.name}</span>
+                                                </div>
+                                            ))}
+                                            
+                                            {!config.sheetUrl && (
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <button onClick={() => setIsModalOpen(true)} className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-dashed flex items-center justify-center transition hover:bg-white/5" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}><Plus size={24} /></button>
+                                                    <span className="mt-2 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>เพิ่ม</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </main>
+                            )}
+
+                            {view === 'settings' && (
+                                <div className="flex-grow p-4 md:p-8 overflow-y-auto">
+                                    <div className="max-w-3xl mx-auto space-y-8 pb-20">
+                                        <div className="pb-4 border-b" style={{ borderColor: 'var(--border)' }}><h2 className="text-3xl font-serif font-bold" style={{ color: 'var(--text-header)' }}>ตั้งค่า</h2><p style={{ color: 'var(--text-muted)' }}>ปรับแต่ง My Apps ในแบบของคุณ</p></div>
+                                        <section className="space-y-4">
+                                            <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}><Link size={20} /> แหล่งข้อมูล (Data Source)</h3>
+                                            <div className="p-4 rounded-xl border bg-[var(--bg-sidebar)]" style={{ borderColor: 'var(--border)' }}>
+                                                <p className="text-sm mb-2" style={{ color: 'var(--text-main)' }}>Google Sheet CSV URL:</p>
+                                                <div className="flex gap-2">
+                                                    <input type="text" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" value={config.sheetUrl || ''} onChange={(e) => setConfig({...config, sheetUrl: e.target.value})} className="flex-grow p-2 rounded-lg border outline-none text-sm" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', borderColor: 'var(--border)' }} />
+                                                    <button onClick={() => fetchAppsFromSheet(config.sheetUrl)} disabled={isSyncing} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white font-bold text-sm flex items-center gap-2">{isSyncing ? <RefreshCw size={14} className="animate-spin"/> : <Download size={14}/>} Sync</button>
+                                                </div>
+                                                <p className="text-xs mt-2 opacity-60" style={{ color: 'var(--text-muted)' }}>* หากใส่ URL ระบบจะดึงข้อมูลจาก Sheet แทนการบันทึกในเครื่อง</p>
+                                            </div>
+                                        </section>
+                                        <section className="space-y-4">
+                                            <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}><Palette size={20} /> เลือกธีม</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                                                {Object.values(themes).map((theme) => (
+                                                    <button key={theme.id} onClick={() => setCurrentTheme(theme.id)} className={`relative p-2 rounded-xl border-2 transition-all ${currentTheme === theme.id ? 'ring-2 ring-[var(--accent)] scale-105' : 'opacity-80'}`} style={{ borderColor: 'var(--border)', backgroundColor: theme.colors['--bg-sidebar'] }}>
+                                                        <div className="h-8 rounded-lg mb-2 shadow-inner border" style={{ backgroundColor: theme.colors['--bg-main'] }}></div>
+                                                        <span className="text-[10px] font-bold block text-center" style={{ color: theme.colors['--text-main'] }}>{theme.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </section>
+                                        <section className="space-y-4 p-6 rounded-2xl border" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--primary)' }}>
+                                            <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}><Monitor size={20} /> การแสดงผล</h3>
+                                            <div className="flex items-center justify-between"><div><p className="font-bold" style={{color: 'var(--text-main)'}}>นาฬิกา 24 ชั่วโมง</p></div><button onClick={() => setConfig({...config, clock24h: !config.clock24h})} className={`w-12 h-6 rounded-full p-1 transition ${config.clock24h ? 'bg-[var(--accent)]' : 'bg-gray-500'}`}><div className={`w-4 h-4 bg-white rounded-full transform transition ${config.clock24h ? 'translate-x-6' : ''}`}></div></button></div>
+                                            <div className="flex items-center justify-between mt-4"><div><p className="font-bold" style={{color: 'var(--text-main)'}}>Widget Mode (Bento Grid)</p></div><button onClick={() => setConfig({...config, layout: config.layout === 'bento' ? 'grid' : 'bento'})} className={`w-12 h-6 rounded-full p-1 transition ${config.layout === 'bento' ? 'bg-[var(--accent)]' : 'bg-gray-500'}`}><div className={`w-4 h-4 bg-white rounded-full transform transition ${config.layout === 'bento' ? 'translate-x-6' : ''}`}></div></button></div>
+                                        </section>
+                                        <div className="flex gap-4"><button onClick={handleExport} className="px-4 py-2 rounded-lg border text-xs flex items-center gap-2" style={{ borderColor: 'var(--border)', color: 'var(--text-main)' }}><Download size={14}/> Backup</button><button onClick={handleReset} className="px-4 py-2 rounded-lg border border-red-900 bg-red-900/20 text-red-500 text-xs flex items-center gap-2"><RotateCcw size={14}/> Reset</button></div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {view === 'about' && (
+                                <div className="flex-grow p-4 md:p-8 overflow-y-auto flex flex-col items-center gap-6">
+                                    <div className="max-w-2xl w-full">
+                                        <div className="rounded-3xl p-8 shadow-2xl border text-center relative overflow-hidden" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
+                                            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[var(--accent)] opacity-20"></div>
+                                            <div className="relative mx-auto w-24 h-24 rounded-full p-1 border-4 shadow-lg mb-4" style={{ borderColor: 'var(--accent)' }}>
+                                                <img src={LOGO_URL} className="w-full h-full rounded-full object-cover" alt="Profile" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold" style={{ color: 'var(--text-header)' }}>พงศธร บุญประเสริฐ</h2>
+                                            <p className="text-sm mt-2 opacity-80" style={{ color: 'var(--text-main)' }}>ผู้อำนวยการส่วนกำหนดสิทธิในที่ดิน<br/>และควบคุมทะเบียนที่ดิน</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full max-w-2xl px-4 pb-2 relative">
+                                        <div className="absolute right-0 top-0 bottom-2 w-16 bg-gradient-to-l from-[var(--bg-main)] to-transparent pointer-events-none flex items-center justify-end px-1 md:hidden z-10">
+                                            <ChevronRight size={20} className="text-[var(--accent)] animate-pulse" />
+                                        </div>
+                                        <div className="flex flex-nowrap overflow-x-auto gap-2 w-full no-scrollbar py-1 relative z-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            <button onClick={() => setAboutTab('work')} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-300 whitespace-nowrap ${aboutTab === 'work' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg' : 'bg-[var(--bg-sidebar)] text-[var(--text-main)] border-[var(--border)] hover:bg-[var(--primary)]'}`}><Briefcase size={16} /> ประวัติการทำงาน</button>
+                                            <button onClick={() => setAboutTab('education')} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-300 whitespace-nowrap ${aboutTab === 'education' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg' : 'bg-[var(--bg-sidebar)] text-[var(--text-main)] border-[var(--border)] hover:bg-[var(--primary)]'}`}><GraduationCap size={16} /> การศึกษา</button>
+                                            <button onClick={() => setAboutTab('vision')} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-300 whitespace-nowrap ${aboutTab === 'vision' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg' : 'bg-[var(--bg-sidebar)] text-[var(--text-main)] border-[var(--border)] hover:bg-[var(--primary)]'}`}><Eye size={16} /> วิสัยทัศน์</button>
+                                            <button onClick={() => setAboutTab('concept')} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-300 whitespace-nowrap ${aboutTab === 'concept' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg' : 'bg-[var(--bg-sidebar)] text-[var(--text-main)] border-[var(--border)] hover:bg-[var(--primary)]'}`}><Lightbulb size={16} /> แนวคิดพัฒนางาน</button>
+                                            <button onClick={() => setAboutTab('contact')} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-300 whitespace-nowrap ${aboutTab === 'contact' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg' : 'bg-[var(--bg-sidebar)] text-[var(--text-main)] border-[var(--border)] hover:bg-[var(--primary)]'}`}><Phone size={16} /> ติดต่อ</button>
+                                            <div className="w-8 flex-shrink-0 md:hidden"></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="max-w-2xl w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        {aboutTab === 'work' && (
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div className="rounded-3xl p-6 border shadow-sm h-full" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-header)' }}><Briefcase size={18} style={{ color: 'var(--accent)' }}/> ประวัติการทำงาน</h3>
+                                                    <ul className="space-y-4 text-sm" style={{ color: 'var(--text-main)' }}>
+                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--accent)' }}></div><span className="opacity-90">ผู้อำนวยการส่วนกำหนดสิทธิในที่ดินและควบคุมทะเบียนที่ดิน</span></li>
+                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">สำนักมาตรฐานการทะเบียนที่ดิน</span></li>
+                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">กรมที่ดิน กระทรวงมหาดไทย</span></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {aboutTab === 'education' && (
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div className="rounded-3xl p-6 border shadow-sm flex items-start gap-4" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <div className="p-3 rounded-2xl bg-[var(--primary)] text-[var(--accent)]"><GraduationCap size={24} /></div>
+                                                    <div>
+                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาโท</h3>
+                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>รัฐประศาสนศาสตรมหาบัณฑิต (MPA)</p>
+                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>สถาบันบัณฑิตพัฒนบริหารศาสตร์ (NIDA)</p>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-3xl p-6 border shadow-sm flex items-start gap-4" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <div className="p-3 rounded-2xl bg-[var(--primary)] text-[var(--text-muted)]"><GraduationCap size={24} /></div>
+                                                    <div>
+                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาตรี</h3>
+                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>นิติศาสตรบัณฑิต (LL.B.)</p>
+                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>มหาวิทยาลัยรามคำแหง</p>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-3xl p-6 border shadow-sm" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-header)' }}><Award size={18} style={{ color: 'var(--accent)' }}/> การฝึกอบรม</h3>
+                                                    <ul className="space-y-3 text-sm" style={{ color: 'var(--text-main)' }}>
+                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตรนักบริหารระดับสูง (นบส.) รุ่นที่ XX</span></li>
+                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตรกฎหมายปกครองสำหรับผู้บริหาร</span></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {aboutTab === 'vision' && (
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div className="rounded-3xl p-8 border shadow-sm text-center relative overflow-hidden" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <div className="absolute top-0 right-0 p-10 opacity-5"><Eye size={120} style={{ color: 'var(--text-main)' }} /></div>
+                                                    <h3 className="font-bold text-xl mb-6 flex items-center justify-center gap-2" style={{ color: 'var(--text-header)' }}><Eye size={24} style={{ color: 'var(--accent)' }}/> วิสัยทัศน์ (Vision)</h3>
+                                                    <p className="text-base leading-8 font-medium italic" style={{ color: 'var(--text-main)' }}>"ยกระดับมาตรฐานงานทะเบียนที่ดินสู่ความเป็นเลิศ ด้วยนวัตกรรมและเทคโนโลยีที่ทันสมัย เพื่อสร้างความมั่นคงในสิทธิที่ดิน และการบริการที่โปร่งใส รวดเร็ว เข้าถึงง่ายสำหรับประชาชนทุกคน"</p>
+                                                    <div className="mt-6 flex justify-center gap-2"><div className="h-1 w-2 rounded-full" style={{ backgroundColor: 'var(--accent)' }}></div><div className="h-1 w-8 rounded-full" style={{ backgroundColor: 'var(--accent)' }}></div><div className="h-1 w-2 rounded-full" style={{ backgroundColor: 'var(--accent)' }}></div></div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {aboutTab === 'concept' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="col-span-1 md:col-span-2 rounded-3xl p-6 border shadow-sm" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-header)' }}><Lightbulb size={18} style={{ color: 'var(--accent)' }}/> แนวคิดในการพัฒนางาน</h3>
+                                                    <div className="space-y-4">
+                                                        <div className="p-4 rounded-2xl border flex gap-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--primary)' }}>
+                                                            <div className="p-2 rounded-lg bg-[var(--accent)] text-white h-fit"><Zap size={20} /></div>
+                                                            <div><h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-header)' }}>Smart Services</h4><p className="text-xs opacity-80" style={{ color: 'var(--text-main)' }}>พัฒนาระบบบริการจดทะเบียนที่ดินออนไลน์ ลดขั้นตอนและระยะเวลา เพื่อความสะดวกของประชาชน</p></div>
+                                                        </div>
+                                                        <div className="p-4 rounded-2xl border flex gap-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--primary)' }}>
+                                                            <div className="p-2 rounded-lg bg-[var(--accent)] text-white h-fit"><Check size={20} /></div>
+                                                            <div><h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-header)' }}>Data Accuracy</h4><p className="text-xs opacity-80" style={{ color: 'var(--text-main)' }}>ยกระดับความถูกต้องแม่นยำของฐานข้อมูลที่ดิน ด้วยการนำเทคโนโลยีรังวัดสมัยใหม่มาประยุกต์ใช้</p></div>
+                                                        </div>
+                                                        <div className="p-4 rounded-2xl border flex gap-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--primary)' }}>
+                                                            <div className="p-2 rounded-lg bg-[var(--accent)] text-white h-fit"><Heart size={20} /></div>
+                                                            <div><h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-header)' }}>Good Governance</h4><p className="text-xs opacity-80" style={{ color: 'var(--text-main)' }}>บริหารจัดการด้วยความโปร่งใส ตรวจสอบได้ และยึดหลักธรรมาภิบาลในการปฏิบัติหน้าที่</p></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {aboutTab === 'contact' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="col-span-1 md:col-span-2 rounded-3xl p-6 border shadow-sm text-center" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
+                                                    <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-[var(--primary)] text-[var(--accent)] mb-3"><Building size={24} /></div>
+                                                    <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--text-header)' }}>ที่ทำงาน</h3>
+                                                    <p className="text-sm opacity-80 leading-relaxed" style={{ color: 'var(--text-main)' }}>สำนักมาตรฐานการทะเบียนที่ดิน กรมที่ดิน<br/>ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษาฯ อาคารรัฐประศาสนภักดี (อาคารบี)<br/>ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร 10210</p>
+                                                </div>
+                                                <a href="tel:021415555" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Phone size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>โทรศัพท์</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>0-2141-5555</span></a>
+                                                <a href="mailto:contact@dol.go.th" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Mail size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>อีเมล</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>contact@dol.go.th</span></a>
+                                                <a href="https://www.dol.go.th" target="_blank" className="col-span-1 md:col-span-2 rounded-3xl p-4 border shadow-sm flex items-center justify-between hover:bg-[var(--primary)] transition-colors px-6" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><div className="flex items-center gap-3"><Globe size={20} style={{ color: 'var(--accent)' }} /><span className="font-medium" style={{ color: 'var(--text-main)' }}>เว็บไซต์กรมที่ดิน</span></div><ChevronRight size={16} style={{ color: 'var(--text-muted)' }} /></a>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <footer className="border-t p-3 text-center flex justify-between items-center px-6 text-[10px] md:text-xs font-medium z-10 transition-colors" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
+                                <div className="flex items-center gap-1"><span>&copy; {new Date().getFullYear()} My Apps. สงวนลิขสิทธิ์</span></div>
+                                <div>Layout: <span style={{color: 'var(--accent)'}}>{config.layout === 'bento' ? 'Widget' : 'Grid'}</span></div>
+                            </footer>
+                        </div>
+                    </div>
+
+                    {isModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <div className="rounded-2xl w-full max-w-sm p-6 shadow-2xl border relative" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--accent)' }}>
+                                <div className="flex justify-between items-center mb-4 border-b pb-2" style={{ borderColor: 'var(--border)' }}><h3 className="text-lg font-bold" style={{ color: 'var(--text-header)' }}>เพิ่มแอพ</h3><button onClick={() => setIsModalOpen(false)} style={{ color: 'var(--text-muted)' }}><X size={20} /></button></div>
+                                <form onSubmit={handleAddApp} className="space-y-3">
+                                    <input type="text" value={newAppName} onChange={(e) => setNewAppName(e.target.value)} className="w-full border rounded-lg px-3 py-2 outline-none text-sm" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border)', color: 'var(--text-main)' }} placeholder="ชื่อแอพ" required />
+                                    <select value={newAppCategory} onChange={(e) => setNewAppCategory(e.target.value)} className="w-full border rounded-lg px-3 py-2 outline-none text-sm" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border)', color: 'var(--text-main)' }}>{categories.filter(c => c.id !== 'All').map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}</select>
+                                    <input type="url" value={newAppUrl} onChange={(e) => setNewAppUrl(e.target.value)} className="w-full border rounded-lg px-3 py-2 outline-none text-sm" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border)', color: 'var(--text-main)' }} placeholder="https://..." required />
+                                    <input type="text" value={newAppIcon} onChange={(e) => setNewAppIcon(e.target.value)} className="w-full border rounded-lg px-3 py-2 outline-none text-xs" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border)', color: 'var(--text-main)' }} placeholder="URL ไอคอน" />
+                                    <button type="submit" className="w-full font-bold py-2 rounded-xl shadow-lg mt-2" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>บันทึก</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<WebAppLauncher />);
+    </script>
+</body>
+</html>
