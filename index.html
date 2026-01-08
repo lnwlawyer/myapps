@@ -53,7 +53,7 @@
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect } from 'react';
+        import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
             Plus, Settings, Menu, LayoutGrid, Briefcase, Music, Zap, Clock, 
@@ -121,6 +121,8 @@
             const [newAppUrl, setNewAppUrl] = useState('');
             const [newAppIcon, setNewAppIcon] = useState('');
             const [newAppCategory, setNewAppCategory] = useState('Tools');
+            
+            const fileInputRef = useRef(null);
 
             useEffect(() => { localStorage.setItem('myapp_data_v9', JSON.stringify(apps)); }, [apps]);
             useEffect(() => { localStorage.setItem('myapp_theme_v9', currentTheme); }, [currentTheme]);
@@ -160,6 +162,33 @@
                 setNewAppName(''); setNewAppUrl(''); setNewAppIcon(''); setIsModalOpen(false);
             };
 
+            // Added missing functions: handleExport, handleImport
+            const handleExport = () => {
+                const dataStr = JSON.stringify({ apps, config, theme: currentTheme });
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', 'my_apps_backup.json');
+                linkElement.click();
+            };
+
+            const handleImport = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.apps) setApps(data.apps);
+                        if (data.config) setConfig(data.config);
+                        if (data.theme && themes[data.theme]) setCurrentTheme(data.theme);
+                        alert('นำเข้าข้อมูลสำเร็จ!');
+                    } catch (err) { alert('ไฟล์ไม่ถูกต้อง'); }
+                };
+                reader.readAsText(file);
+                event.target.value = null;
+            };
+
             const handleReset = () => {
                 if(confirm('รีเซ็ตข้อมูลทั้งหมด?')) {
                     setApps(defaultApps); setCurrentTheme('dark');
@@ -183,7 +212,6 @@
                 const seconds = currentTime.getSeconds(), minutes = currentTime.getMinutes(), hours = currentTime.getHours();
                 const secDeg = seconds * 6, minDeg = minutes * 6 + seconds * 0.1, hourDeg = (hours % 12) * 30 + minutes * 0.5;
                 return (
-                    // ปรับ col-span-1 เพื่อให้แสดงผลครึ่งหน้าจอบนมือถือ
                     <div onClick={() => setClockMode((prev) => (prev + 1) % 3)} className="col-span-1 md:col-span-3 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex items-center justify-center relative overflow-hidden group border shadow-sm cursor-pointer select-none" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
                         <div className="absolute top-2 right-2 md:top-4 md:right-4 opacity-30 transition-opacity group-hover:opacity-100"><Clock size={16} className="md:w-5 md:h-5" style={{ color: 'var(--accent)' }} /></div>
                         {clockMode === 0 && (
@@ -216,7 +244,6 @@
             };
 
             const CalendarWidget = () => (
-                // ปรับ col-span-1 เพื่อให้แสดงผลครึ่งหน้าจอบนมือถือ (อยู่ในแถวเดียวกับ Clock)
                 <div onClick={() => { if (!showLargeCalendar) { setCalendarDate(new Date()); setSelectedDateEvents(null); } setShowLargeCalendar(!showLargeCalendar); }} className={`col-span-1 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex flex-col items-center justify-center border shadow-sm cursor-pointer transition-all active:scale-95 ${showLargeCalendar ? 'ring-2 ring-[var(--accent)] bg-[var(--primary)]' : 'hover:brightness-110'}`} style={{ backgroundColor: showLargeCalendar ? 'var(--primary)' : 'var(--bg-sidebar)', borderColor: 'var(--border)' }} title="ปิดปฏิทิน">
                     <div className="flex flex-col items-center">
                         <span className="text-[10px] md:text-xs uppercase font-bold tracking-widest opacity-60 mb-1" style={{ color: 'var(--text-muted)' }}>{currentTime.toLocaleDateString('en-US', { month: 'long' })}</span>
