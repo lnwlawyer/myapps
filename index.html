@@ -15,16 +15,16 @@
     <link rel="icon" type="image/jpeg" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
     <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
     
-    <!-- ถ้ามีไฟล์ manifest.json ให้ uncomment บรรทัดด้านล่าง -->
-    <!-- <link rel="manifest" href="./manifest.json"> -->
+    <!-- PWA Manifest แบบฝังในไฟล์เดียว (Data URI) -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJ7Im5hbWUiOiJNeSBBcHBzIiwic2hvcnRfbmFtZSI6Ik15IEFwcHMiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiIzAwMDAwMCIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2xpdmUuc3RhdGljZmxpY2tyLmNvbS82NTUzNS81NDcyMTg5OTU5M181ZDc4OWVmMDczX3cuanBnIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL2pwZWcifSx7InNyYyI6Imh0dHBzOi8vbGl2ZS5zdGF0aWNmbGlja3IuY29tLzY1NTM1LzU0NzIxODk5NTkzXzVkNzg5ZWYwNzNfdy5qcGciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvanBlZyJ9XX0=">
 
-    <!-- Tailwind CSS (สำหรับตกแต่ง) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Babel (สำหรับอ่านโค้ด React ใน Browser) -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Import Map (ดึงไลบรารี React จากเซิร์ฟเวอร์) -->
+    <!-- Import Map -->
     <script type="importmap">
         {
             "imports": {
@@ -47,6 +47,24 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+        
+        /* Animation for Install Button */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+        .ring-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+        }
+        .circle {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background-color: var(--accent);
+            opacity: 0.5;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
     </style>
 </head>
 <body class="bg-black text-white h-screen overflow-hidden">
@@ -59,7 +77,7 @@
             Plus, Settings, Menu, LayoutGrid, Briefcase, Music, Zap, Clock, 
             Palette, Download, RotateCcw, Monitor, Check, Star, User, Building, 
             MapPin, Calendar as CalendarIcon, Grid, ChevronLeft, ChevronRight, 
-            Award, Lightbulb, Bell, Cloud, Sun, Link, RefreshCw,
+            Award, Lightbulb, Bell, Cloud, Sun, Link, RefreshCw, Smartphone,
             Database, BookOpen, MessageCircle, MoreHorizontal, GraduationCap, Phone, Mail, Globe, Eye, Trash2, X, Heart
         } from 'lucide-react';
 
@@ -109,8 +127,9 @@
             const [newAppIcon, setNewAppIcon] = useState('');
             const [newAppCategory, setNewAppCategory] = useState('Tools');
             
-            const fileInputRef = useRef(null);
-
+            // PWA Install State
+            const [installPrompt, setInstallPrompt] = useState(null);
+            
             useEffect(() => { localStorage.setItem('myapp_data_v9', JSON.stringify(apps)); }, [apps]);
             useEffect(() => { localStorage.setItem('myapp_theme_v9', currentTheme); }, [currentTheme]);
             useEffect(() => { localStorage.setItem('myapp_config_v9', JSON.stringify(config)); }, [config]);
@@ -118,8 +137,28 @@
             useEffect(() => {
                 const timer = setInterval(() => setCurrentTime(new Date()), 1000);
                 if(config.sheetUrl) fetchAppsFromSheet(config.sheetUrl, false);
-                return () => clearInterval(timer);
+                
+                // PWA Install Listener
+                const handleBeforeInstallPrompt = (e) => {
+                    e.preventDefault();
+                    setInstallPrompt(e);
+                };
+                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                
+                return () => {
+                    clearInterval(timer);
+                    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                };
             }, []);
+
+            const handleInstallApp = async () => {
+                if (!installPrompt) return;
+                installPrompt.prompt();
+                const { outcome } = await installPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    setInstallPrompt(null);
+                }
+            };
 
             const fetchAppsFromSheet = async (url, showAlert = true) => {
                 if (!url) return;
@@ -182,6 +221,13 @@
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            {/* Mobile Install Button in Header if Prompt Available */}
+                            {installPrompt && (
+                                <button onClick={handleInstallApp} className="md:hidden flex items-center gap-1 px-3 py-1.5 rounded-full bg-[var(--accent)] text-white text-xs font-bold shadow-lg animate-pulse">
+                                    <Smartphone size={14} /> ติดตั้ง
+                                </button>
+                            )}
+                            
                             <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border border-[var(--border)] bg-white/5 text-[var(--text-main)]">
                                 <span className="flex items-center gap-1 pr-2 mr-2 border-r border-[var(--border)] opacity-90"><CalendarIcon size={12} className="text-[var(--accent)]" /><span>{currentTime.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span></span>
                                 <div className="flex items-center gap-1 font-mono"><span>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</span></div>
@@ -208,9 +254,22 @@
                                     </button>
                                 ))}
                                 <div className="my-4 border-t" style={{ borderColor: 'var(--border)' }}></div>
-                                <button onClick={() => { setView('about'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm ${view === 'about' ? 'border-l-4' : 'border-l-4 border-transparent opacity-70'}`} style={{ backgroundColor: view === 'about' ? 'var(--primary)' : 'transparent', color: view === 'about' ? 'var(--text-header)' : 'var(--text-main)', borderColor: view === 'about' ? 'var(--accent)' : 'transparent' }}>
+                                <button onClick={() => { setView('about'); if(window.innerWidth <768) setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm ${view === 'about' ? 'border-l-4' : 'border-l-4 border-transparent opacity-70'}`} style={{ backgroundColor: view === 'about' ? 'var(--primary)' : 'transparent', color: view === 'about' ? 'var(--text-header)' : 'var(--text-main)', borderColor: view === 'about' ? 'var(--accent)' : 'transparent' }}>
                                     <User size={18} style={{ color: view === 'about' ? 'var(--accent)' : 'var(--text-muted)' }} /> เกี่ยวกับฉัน
                                 </button>
+                                
+                                {/* Install App Button (Desktop/Sidebar) */}
+                                {installPrompt && (
+                                    <div className="mt-4 px-4">
+                                        <button onClick={handleInstallApp} className="w-full relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--accent)] text-white font-bold shadow-lg overflow-hidden group">
+                                            <div className="ring-container">
+                                                <div className="circle"></div>
+                                            </div>
+                                            <Smartphone size={20} className="relative z-10" />
+                                            <span className="relative z-10">ติดตั้งแอพลงเครื่อง</span>
+                                        </button>
+                                    </div>
+                                )}
                             </nav>
                         </aside>
 
