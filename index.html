@@ -60,20 +60,12 @@
             Palette, Download, RotateCcw, Monitor, Check, Star, User, Building, 
             MapPin, Calendar as CalendarIcon, Grid, ChevronLeft, ChevronRight, 
             Award, Lightbulb, Bell, Cloud, Sun, Link, RefreshCw,
-            Database, BookOpen, MessageCircle, MoreHorizontal, GraduationCap, Phone, Mail, Globe, Eye
+            Database, BookOpen, MessageCircle, MoreHorizontal, GraduationCap, Phone, Mail, Globe, Eye, Trash2, X, Heart
         } from 'lucide-react';
 
         const WebAppLauncher = () => {
             const LOGO_URL = "https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg";
             const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQr2K1V0RWB19VkP2_zRh2WW2fwrGO9Ij6JktL_6taysLNCICz-IKYRZnO6n0VsJIJnNmb-U0nXL9UW/pub?gid=0&single=true&output=csv";
-
-            const thaiHolidays = {
-                "1-1": "วันขึ้นปีใหม่", "14-2": "วันวาเลนไทน์", "6-4": "วันจักรี",
-                "13-4": "วันสงกรานต์", "14-4": "วันสงกรานต์", "15-4": "วันสงกรานต์",
-                "1-5": "วันแรงงานแห่งชาติ", "4-5": "วันฉัตรมงคล", "3-6": "วันเฉลิมฯ พระราชินี",
-                "28-7": "วันเฉลิมฯ ร.10", "12-8": "วันแม่แห่งชาติ", "13-10": "วันคล้ายวันสวรรคต ร.9",
-                "23-10": "วันปิยมหาราช", "5-12": "วันพ่อแห่งชาติ", "10-12": "วันรัฐธรรมนูญ", "31-12": "วันสิ้นปี"
-            };
 
             const themes = {
                 dark: { id: 'dark', name: 'OLED Black', colors: { '--bg-main': '#000000', '--bg-sidebar': '#000000', '--bg-header': '#000000', '--text-main': '#E5E5E5', '--text-header': '#FFFFFF', '--text-muted': '#A1A1AA', '--primary': '#18181B', '--accent': '#3B82F6', '--border': '#27272A' } },
@@ -101,7 +93,7 @@
 
             const [apps, setApps] = useState(() => JSON.parse(localStorage.getItem('myapp_data_v9')) || defaultApps);
             const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('myapp_theme_v9') || 'dark');
-            const [config, setConfig] = useState(() => JSON.parse(localStorage.getItem('myapp_config_v9')) || { clock24h: true, animations: true, layout: 'grid', sheetUrl: DEFAULT_SHEET_URL });
+            const [config, setConfig] = useState(() => JSON.parse(localStorage.getItem('myapp_config_v9')) || { clock24h: true, animations: true, sheetUrl: DEFAULT_SHEET_URL });
             
             const [view, setView] = useState('apps');
             const [aboutTab, setAboutTab] = useState('work');
@@ -111,11 +103,6 @@
             const [isEditMode, setIsEditMode] = useState(false);
             const [currentTime, setCurrentTime] = useState(new Date());
 
-            const [showLargeCalendar, setShowLargeCalendar] = useState(false);
-            const [calendarDate, setCalendarDate] = useState(new Date());
-            const [selectedDateEvents, setSelectedDateEvents] = useState(null);
-            const [clockMode, setClockMode] = useState(0);
-            
             const [isSyncing, setIsSyncing] = useState(false);
             const [newAppName, setNewAppName] = useState('');
             const [newAppUrl, setNewAppUrl] = useState('');
@@ -162,7 +149,6 @@
                 setNewAppName(''); setNewAppUrl(''); setNewAppIcon(''); setIsModalOpen(false);
             };
 
-            // Added missing functions: handleExport, handleImport
             const handleExport = () => {
                 const dataStr = JSON.stringify({ apps, config, theme: currentTheme });
                 const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -172,27 +158,10 @@
                 linkElement.click();
             };
 
-            const handleImport = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (data.apps) setApps(data.apps);
-                        if (data.config) setConfig(data.config);
-                        if (data.theme && themes[data.theme]) setCurrentTheme(data.theme);
-                        alert('นำเข้าข้อมูลสำเร็จ!');
-                    } catch (err) { alert('ไฟล์ไม่ถูกต้อง'); }
-                };
-                reader.readAsText(file);
-                event.target.value = null;
-            };
-
             const handleReset = () => {
                 if(confirm('รีเซ็ตข้อมูลทั้งหมด?')) {
                     setApps(defaultApps); setCurrentTheme('dark');
-                    const resetConfig = { clock24h: true, animations: true, layout: 'grid', sheetUrl: DEFAULT_SHEET_URL };
+                    const resetConfig = { clock24h: true, animations: true, sheetUrl: DEFAULT_SHEET_URL };
                     setConfig(resetConfig);
                     setTimeout(() => fetchAppsFromSheet(DEFAULT_SHEET_URL, false), 500);
                 }
@@ -200,105 +169,6 @@
 
             const filteredApps = apps.filter(app => (selectedCategory === 'All' || app.category === selectedCategory));
             const themeStyles = themes[currentTheme].colors;
-            const getDaysInMonth = (date) => {
-                const year = date.getFullYear(), month = date.getMonth();
-                const days = new Date(year, month + 1, 0).getDate();
-                const firstDay = new Date(year, month, 1).getDay();
-                return { days, firstDay, year, month };
-            };
-            const getEventForDate = (day, month) => thaiHolidays[`${day}-${month + 1}`];
-
-            const ClockWidget = () => {
-                const seconds = currentTime.getSeconds(), minutes = currentTime.getMinutes(), hours = currentTime.getHours();
-                const secDeg = seconds * 6, minDeg = minutes * 6 + seconds * 0.1, hourDeg = (hours % 12) * 30 + minutes * 0.5;
-                return (
-                    <div onClick={() => setClockMode((prev) => (prev + 1) % 3)} className="col-span-1 md:col-span-3 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex items-center justify-center relative overflow-hidden group border shadow-sm cursor-pointer select-none" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
-                        <div className="absolute top-2 right-2 md:top-4 md:right-4 opacity-30 transition-opacity group-hover:opacity-100"><Clock size={16} className="md:w-5 md:h-5" style={{ color: 'var(--accent)' }} /></div>
-                        {clockMode === 0 && (
-                            <div className="flex flex-col items-center md:items-start w-full animate-in fade-in zoom-in duration-300">
-                                <p className="text-xs md:text-base font-medium opacity-70 mb-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
-                                <div className="text-3xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</div>
-                                <div className="h-1 md:h-1.5 w-16 md:w-24 bg-gradient-to-r from-[var(--accent)] to-transparent rounded-full mt-2 md:mt-4 opacity-60"></div>
-                            </div>
-                        )}
-                        {clockMode === 1 && (
-                            <div className="relative w-24 h-24 md:w-40 md:h-40 animate-in spin-in-12 duration-500">
-                                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
-                                    <circle cx="50" cy="50" r="48" fill="var(--bg-sidebar)" stroke="var(--border)" strokeWidth="2" />
-                                    {[...Array(12)].map((_, i) => (<line key={i} x1="50" y1="6" x2="50" y2={i % 3 === 0 ? "12" : "8"} transform={`rotate(${i * 30} 50 50)`} stroke="var(--text-muted)" strokeWidth={i % 3 === 0 ? "3" : "1"} />))}
-                                    <line x1="50" y1="50" x2="50" y2="25" stroke="var(--text-header)" strokeWidth="4" strokeLinecap="round" transform={`rotate(${hourDeg} 50 50)`} />
-                                    <line x1="50" y1="50" x2="50" y2="15" stroke="var(--text-main)" strokeWidth="3" strokeLinecap="round" transform={`rotate(${minDeg} 50 50)`} />
-                                    <line x1="50" y1="50" x2="50" y2="10" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" transform={`rotate(${secDeg} 50 50)`} />
-                                    <circle cx="50" cy="50" r="3" fill="var(--accent)" />
-                                </svg>
-                            </div>
-                        )}
-                        {clockMode === 2 && (
-                            <div className="flex flex-col items-center animate-in slide-in-from-bottom-4 duration-300">
-                                <div className="text-4xl md:text-8xl font-bold tracking-widest font-mono" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}</div>
-                                <div className="text-lg md:text-2xl font-mono opacity-80 mt-1 md:mt-2" style={{ color: 'var(--accent)' }}>{currentTime.getSeconds().toString().padStart(2, '0')}</div>
-                            </div>
-                        )}
-                    </div>
-                );
-            };
-
-            const CalendarWidget = () => (
-                <div onClick={() => { if (!showLargeCalendar) { setCalendarDate(new Date()); setSelectedDateEvents(null); } setShowLargeCalendar(!showLargeCalendar); }} className={`col-span-1 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex flex-col items-center justify-center border shadow-sm cursor-pointer transition-all active:scale-95 ${showLargeCalendar ? 'ring-2 ring-[var(--accent)] bg-[var(--primary)]' : 'hover:brightness-110'}`} style={{ backgroundColor: showLargeCalendar ? 'var(--primary)' : 'var(--bg-sidebar)', borderColor: 'var(--border)' }} title="ปิดปฏิทิน">
-                    <div className="flex flex-col items-center">
-                        <span className="text-[10px] md:text-xs uppercase font-bold tracking-widest opacity-60 mb-1" style={{ color: 'var(--text-muted)' }}>{currentTime.toLocaleDateString('en-US', { month: 'long' })}</span>
-                        <span className="text-5xl md:text-6xl font-bold leading-none" style={{ color: 'var(--accent)' }}>{currentTime.getDate()}</span>
-                        <span className="text-[10px] md:text-xs opacity-60 mt-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long' })}</span>
-                        {getEventForDate(currentTime.getDate(), currentTime.getMonth()) && (<div className="mt-2 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--accent)] text-white"><Star size={8} fill="currentColor" /> วันสำคัญ</div>)}
-                    </div>
-                </div>
-            );
-
-            const LargeCalendar = () => {
-                const { days, firstDay, year, month } = getDaysInMonth(calendarDate);
-                const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-                const today = new Date();
-                
-                return (
-                    <div className="rounded-3xl border p-6 animate-in fade-in zoom-in duration-300 h-auto min-h-[400px] flex flex-col relative" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="w-8"></div>
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setCalendarDate(new Date(year, month - 1))} className="p-1 hover:text-[var(--accent)] transition" style={{ color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
-                                <h2 className="text-xl font-bold font-serif" style={{ color: 'var(--text-header)' }}>{monthNames[month]} {year + 543}</h2>
-                                <button onClick={() => setCalendarDate(new Date(year, month + 1))} className="p-1 hover:text-[var(--accent)] transition" style={{ color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
-                            </div>
-                            <div className="w-8"></div>
-                        </div>
-                        <div className="grid grid-cols-7 text-center mb-2">{['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map((d, i) => (<div key={i} className="text-xs font-bold opacity-60 py-2" style={{ color: i === 0 || i === 6 ? 'var(--accent)' : 'var(--text-main)' }}>{d}</div>))}</div>
-                        <div className="grid grid-cols-7 gap-1 text-center flex-grow">
-                            {[...Array(firstDay)].map((_, i) => <div key={`empty-${i}`} />)}
-                            {[...Array(days)].map((_, i) => {
-                                const day = i + 1;
-                                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-                                const eventName = getEventForDate(day, month);
-                                return (
-                                    <div key={day} onClick={() => { if (eventName) { setSelectedDateEvents({day, month, year, name: eventName}); } }} className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all relative ${isToday ? 'font-bold shadow-lg bg-[var(--accent)] text-white' : 'hover:bg-white/5'} ${eventName ? 'cursor-pointer hover:scale-110' : ''} ${eventName && !isToday ? 'border border-[var(--accent)]' : ''}`} style={{ color: isToday ? '#fff' : 'var(--text-main)' }}>
-                                        {day}
-                                        {eventName && (<div className={`w-1.5 h-1.5 rounded-full mt-1 ${isToday ? 'bg-white' : 'bg-[var(--accent)]'}`}></div>)}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {selectedDateEvents && (
-                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl animate-in fade-in duration-200" onClick={() => setSelectedDateEvents(null)}>
-                                <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] p-6 rounded-2xl shadow-2xl max-w-xs w-full mx-4 text-center transform scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'var(--bg-sidebar)' }}>
-                                    <div className="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center mx-auto mb-3 text-[var(--accent)]"><Bell size={24} /></div>
-                                    <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--text-header)' }}>{selectedDateEvents.day} {monthNames[selectedDateEvents.month]} {selectedDateEvents.year + 543}</h3>
-                                    <div className="h-1 w-12 bg-[var(--accent)] rounded-full mx-auto mb-4 opacity-50"></div>
-                                    <p className="text-base font-medium mb-6" style={{ color: 'var(--text-main)' }}>{selectedDateEvents.name}</p>
-                                    <button onClick={() => setSelectedDateEvents(null)} className="px-6 py-2 rounded-full font-bold text-sm transition-transform active:scale-95 shadow-md" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>ปิด</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            };
 
             return (
                 <div className={`flex flex-col h-screen overflow-hidden font-sans transition-colors duration-500`} style={themeStyles}>
@@ -321,9 +191,6 @@
                                     <Plus size={16} className={isEditMode ? "rotate-45" : ""} />
                                 </button>
                             )}
-                            <button onClick={() => { setConfig({...config, layout: config.layout === 'grid' ? 'bento' : 'grid'}); }} className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--bg-sidebar)] border-2 hover:bg-white/10" style={{ borderColor: 'var(--border)' }} title="เปลี่ยนมุมมอง">
-                                {config.layout === 'grid' ? <LayoutGrid size={16} style={{ color: 'var(--text-main)' }} /> : <Grid size={16} style={{ color: 'var(--accent)' }} />}
-                            </button>
                             <button onClick={() => setView('settings')} className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--bg-sidebar)] border-2 hover:bg-white/10" style={{ borderColor: 'var(--accent)' }} title="ตั้งค่า">
                                 <Settings size={16} style={{ color: 'var(--text-main)' }} />
                             </button>
@@ -337,7 +204,7 @@
                                 <div className="pb-2 pl-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--text-muted)' }}><Star size={10} className="text-[var(--accent)]" /> เมนูหลัก</div>
                                 {categories.map((cat) => (
                                     <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setView('apps'); if(window.innerWidth < 768) setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm mb-1 ${view === 'apps' && selectedCategory === cat.id ? 'border-l-4 shadow-sm' : 'border-l-4 border-transparent opacity-70 hover:opacity-100'}`} style={{ backgroundColor: view === 'apps' && selectedCategory === cat.id ? 'var(--primary)' : 'transparent', color: view === 'apps' && selectedCategory === cat.id ? 'var(--text-header)' : 'var(--text-main)', borderColor: view === 'apps' && selectedCategory === cat.id ? 'var(--accent)' : 'transparent' }}>
-                                        <span style={{ color: view === 'apps' && selectedCategory === cat.id ? 'var(--accent)' : 'var(--text-muted)' }}>{cat.icon}</span>{cat.name}
+                                            <span style={{ color: view === 'apps' && selectedCategory === cat.id ? 'var(--accent)' : 'var(--text-muted)' }}>{cat.icon}</span>{cat.name}
                                     </button>
                                 ))}
                                 <div className="my-4 border-t" style={{ borderColor: 'var(--border)' }}></div>
@@ -352,44 +219,24 @@
 
                             {view === 'apps' && (
                                 <main className="flex-grow p-4 md:p-8 overflow-y-auto">
-                                    {config.layout === 'bento' && (
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mb-8">
-                                            <ClockWidget />
-                                            {/* Wrapper div not needed for layout but useful if we want to handle click on entire area */}
-                                            <CalendarWidget />
-                                        </div>
-                                    )}
-
-                                    {config.layout === 'bento' && (
-                                        <div className="flex items-center gap-2 mb-4 opacity-70 pl-1" style={{ color: 'var(--text-muted)' }}>
-                                            {showLargeCalendar ? <CalendarIcon size={14} /> : <LayoutGrid size={14} />} 
-                                            <span className="text-xs font-bold uppercase tracking-wider">{showLargeCalendar ? 'ปฏิทินของฉัน' : 'แอพพลิเคชัน'}</span>
-                                            <div className="h-[1px] flex-grow opacity-30" style={{ backgroundColor: 'var(--border)' }}></div>
-                                        </div>
-                                    )}
-
-                                    {showLargeCalendar ? (
-                                        <div className="w-full max-w-4xl mx-auto mb-8"><LargeCalendar /></div>
-                                    ) : (
-                                        <div className={`grid gap-4 md:gap-6 pb-20 ${config.layout === 'bento' ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7' : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7'}`}>
-                                            {filteredApps.map((app) => (
-                                                <div key={app.id} className="relative flex flex-col items-center justify-center group">
-                                                    {isEditMode && (<button onClick={() => { if(confirm('ลบแอพ?')) setApps(apps.filter(a => a.id !== app.id)); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md z-20 animate-bounce"><Trash2 size={14} /></button>)}
-                                                    <button onClick={() => !isEditMode && window.open(app.url, '_blank')} className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 overflow-hidden border ${isEditMode ? 'animate-pulse' : config.animations ? 'hover:-translate-y-1 hover:shadow-lg' : ''}`} style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)', boxShadow: currentTheme === 'dark' ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}>
-                                                        <img src={app.icon} alt={app.name} className="w-10 h-10 md:w-12 md:h-12 object-contain" onError={(e)=>e.target.src='https://via.placeholder.com/64'} />
-                                                    </button>
-                                                    <span className="mt-2 text-xs font-bold truncate w-full text-center" style={{ color: 'var(--text-main)' }}>{app.name}</span>
-                                                </div>
-                                            ))}
-                                            
-                                            {!config.sheetUrl && (
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <button onClick={() => setIsModalOpen(true)} className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-dashed flex items-center justify-center transition hover:bg-white/5" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}><Plus size={24} /></button>
-                                                    <span className="mt-2 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>เพิ่ม</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    <div className={`grid gap-4 md:gap-6 pb-20 grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7`}>
+                                        {filteredApps.map((app) => (
+                                            <div key={app.id} className="relative flex flex-col items-center justify-center group">
+                                                {isEditMode && (<button onClick={() => { if(confirm('ลบแอพ?')) setApps(apps.filter(a => a.id !== app.id)); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md z-20 animate-bounce"><Trash2 size={14} /></button>)}
+                                                <button onClick={() => !isEditMode && window.open(app.url, '_blank')} className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 overflow-hidden border ${isEditMode ? 'animate-pulse' : config.animations ? 'hover:-translate-y-1 hover:shadow-lg' : ''}`} style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)', boxShadow: currentTheme === 'dark' ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                                    <img src={app.icon} alt={app.name} className="w-10 h-10 md:w-12 md:h-12 object-contain" onError={(e)=>e.target.src='https://via.placeholder.com/64'} />
+                                                </button>
+                                                <span className="mt-2 text-xs font-bold truncate w-full text-center" style={{ color: 'var(--text-main)' }}>{app.name}</span>
+                                            </div>
+                                        ))}
+                                        
+                                        {!config.sheetUrl && (
+                                            <div className="flex flex-col items-center justify-center">
+                                                <button onClick={() => setIsModalOpen(true)} className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-dashed flex items-center justify-center transition hover:bg-white/5" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}><Plus size={24} /></button>
+                                                <span className="mt-2 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>เพิ่ม</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </main>
                             )}
 
@@ -422,7 +269,6 @@
                                         <section className="space-y-4 p-6 rounded-2xl border" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--primary)' }}>
                                             <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}><Monitor size={20} /> การแสดงผล</h3>
                                             <div className="flex items-center justify-between"><div><p className="font-bold" style={{color: 'var(--text-main)'}}>นาฬิกา 24 ชั่วโมง</p></div><button onClick={() => setConfig({...config, clock24h: !config.clock24h})} className={`w-12 h-6 rounded-full p-1 transition ${config.clock24h ? 'bg-[var(--accent)]' : 'bg-gray-500'}`}><div className={`w-4 h-4 bg-white rounded-full transform transition ${config.clock24h ? 'translate-x-6' : ''}`}></div></button></div>
-                                            <div className="flex items-center justify-between mt-4"><div><p className="font-bold" style={{color: 'var(--text-main)'}}>Widget Mode (Bento Grid)</p></div><button onClick={() => setConfig({...config, layout: config.layout === 'bento' ? 'grid' : 'bento'})} className={`w-12 h-6 rounded-full p-1 transition ${config.layout === 'bento' ? 'bg-[var(--accent)]' : 'bg-gray-500'}`}><div className={`w-4 h-4 bg-white rounded-full transform transition ${config.layout === 'bento' ? 'translate-x-6' : ''}`}></div></button></div>
                                         </section>
                                         <div className="flex gap-4"><button onClick={handleExport} className="px-4 py-2 rounded-lg border text-xs flex items-center gap-2" style={{ borderColor: 'var(--border)', color: 'var(--text-main)' }}><Download size={14}/> Backup</button><button onClick={handleReset} className="px-4 py-2 rounded-lg border border-red-900 bg-red-900/20 text-red-500 text-xs flex items-center gap-2"><RotateCcw size={14}/> Reset</button></div>
                                     </div>
@@ -545,7 +391,7 @@
 
                             <footer className="border-t p-3 text-center flex justify-between items-center px-6 text-[10px] md:text-xs font-medium z-10 transition-colors" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
                                 <div className="flex items-center gap-1"><span>&copy; {new Date().getFullYear()} My Apps. สงวนลิขสิทธิ์</span></div>
-                                <div>Layout: <span style={{color: 'var(--accent)'}}>{config.layout === 'bento' ? 'Widget' : 'Grid'}</span></div>
+                                <div>Layout: <span style={{color: 'var(--accent)'}}>Grid</span></div>
                             </footer>
                         </div>
                     </div>
