@@ -81,14 +81,14 @@
             ];
 
             const categories = [
+                { id: 'All', name: 'ทั้งหมด', icon: <LayoutGrid size={18} /> },
                 { id: 'Data', name: 'ข้อมูล', icon: <Database size={18} /> },
                 { id: 'Work', name: 'การทำงาน', icon: <Briefcase size={18} /> },
                 { id: 'Knowledge', name: 'ความรู้', icon: <BookOpen size={18} /> },
                 { id: 'Tools', name: 'เครื่องมือ', icon: <Zap size={18} /> },
                 { id: 'Social', name: 'โซเชียล', icon: <MessageCircle size={18} /> },
                 { id: 'Entertainment', name: 'บันเทิง', icon: <Music size={18} /> },
-                { id: 'Others', name: 'อื่นๆ', icon: <MoreHorizontal size={18} /> },
-                { id: 'All', name: 'ทั้งหมด', icon: <LayoutGrid size={18} /> }
+                { id: 'Others', name: 'อื่นๆ', icon: <MoreHorizontal size={18} /> }
             ];
 
             const [apps, setApps] = useState(() => JSON.parse(localStorage.getItem('myapp_data_v9')) || defaultApps);
@@ -97,7 +97,7 @@
             
             const [view, setView] = useState('apps');
             const [aboutTab, setAboutTab] = useState('work');
-            const [selectedCategory, setSelectedCategory] = useState('Data');
+            const [selectedCategory, setSelectedCategory] = useState('All');
             const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [isEditMode, setIsEditMode] = useState(false);
