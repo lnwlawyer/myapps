@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>My Apps</title>
 
-    <!-- --- การตั้งค่า PWA และ Fullscreen --- -->
+    <!-- ตั้งค่า Web App (PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="My Apps">
     <meta name="theme-color" content="#000000">
 
-    <!-- Icons -->
+    <!-- รูปไอคอน -->
     <link rel="icon" type="image/jpeg" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
     <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
-    <link rel="manifest" href="./manifest.json">
+    
+    <!-- ถ้ามีไฟล์ manifest.json ให้ uncomment บรรทัดด้านล่าง -->
+    <!-- <link rel="manifest" href="./manifest.json"> -->
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (สำหรับตกแต่ง) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Babel สำหรับแปลง JSX ใน Browser -->
+    <!-- Babel (สำหรับอ่านโค้ด React ใน Browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- React & ReactDOM via ESM -->
+    <!-- Import Map (ดึงไลบรารี React จากเซิร์ฟเวอร์) -->
     <script type="importmap">
         {
             "imports": {
@@ -37,17 +39,12 @@
         body {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
             overscroll-behavior-y: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Animation Utilities */
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 10s linear infinite; }
     </style>
@@ -55,19 +52,15 @@
 <body class="bg-black text-white h-screen overflow-hidden">
     <div id="root"></div>
 
-    <!-- เปลี่ยน type เป็น text/babel และเพิ่ม data-type="module" -->
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useRef } from 'react';
+        import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
-            Plus, X, Trash2, Settings, Menu, Folder, LayoutGrid, 
-            Briefcase, Coffee, Music, Zap, Clock, Heart, 
-            Palette, Download, Upload, RotateCcw, Monitor, Check,
-            Star, User, Building, MapPin, Calendar as CalendarIcon,
-            Grid, List, ChevronLeft, ChevronRight, Minimize, Maximize,
-            Award, Quote, FileText, GraduationCap, Phone, Mail, Globe, Facebook,
-            Eye, Lightbulb, Bell, Search, Link, RefreshCw,
-            Database, BookOpen, MessageCircle, MoreHorizontal
+            Plus, Settings, Menu, LayoutGrid, Briefcase, Music, Zap, Clock, 
+            Palette, Download, RotateCcw, Monitor, Check, Star, User, Building, 
+            MapPin, Calendar as CalendarIcon, Grid, ChevronLeft, ChevronRight, 
+            Award, Lightbulb, Bell, Cloud, Sun, Link, RefreshCw,
+            Database, BookOpen, MessageCircle, MoreHorizontal, GraduationCap, Phone, Mail, Globe, Eye
         } from 'lucide-react';
 
         const WebAppLauncher = () => {
@@ -77,27 +70,22 @@
             const thaiHolidays = {
                 "1-1": "วันขึ้นปีใหม่", "14-2": "วันวาเลนไทน์", "6-4": "วันจักรี",
                 "13-4": "วันสงกรานต์", "14-4": "วันสงกรานต์", "15-4": "วันสงกรานต์",
-                "1-5": "วันแรงงานแห่งชาติ", "4-5": "วันฉัตรมงคล", "3-6": "วันเฉลิมพระชนมพรรษาพระราชินี",
-                "28-7": "วันเฉลิมพระชนมพรรษา ร.10", "12-8": "วันแม่แห่งชาติ", "13-10": "วันคล้ายวันสวรรคต ร.9",
+                "1-5": "วันแรงงานแห่งชาติ", "4-5": "วันฉัตรมงคล", "3-6": "วันเฉลิมฯ พระราชินี",
+                "28-7": "วันเฉลิมฯ ร.10", "12-8": "วันแม่แห่งชาติ", "13-10": "วันคล้ายวันสวรรคต ร.9",
                 "23-10": "วันปิยมหาราช", "5-12": "วันพ่อแห่งชาติ", "10-12": "วันรัฐธรรมนูญ", "31-12": "วันสิ้นปี"
             };
 
             const themes = {
                 dark: { id: 'dark', name: 'OLED Black', colors: { '--bg-main': '#000000', '--bg-sidebar': '#000000', '--bg-header': '#000000', '--text-main': '#E5E5E5', '--text-header': '#FFFFFF', '--text-muted': '#A1A1AA', '--primary': '#18181B', '--accent': '#3B82F6', '--border': '#27272A' } },
                 sage: { id: 'sage', name: 'Sage Green', colors: { '--bg-main': '#E0E8DF', '--bg-sidebar': '#FDF7E4', '--bg-header': '#40513B', '--text-main': '#2F4F4F', '--text-header': '#FDF7E4', '--text-muted': '#5D8A66', '--primary': '#40513B', '--accent': '#B25068', '--border': '#9DC08B' } },
-                eyecare: { id: 'eyecare', name: 'Eye Care', colors: { '--bg-main': '#F2E6D6', '--bg-sidebar': '#E8DCCA', '--bg-header': '#4E342E', '--text-main': '#3E2723', '--text-header': '#F2E6D6', '--text-muted': '#8D6E63', '--primary': '#6D4C41', '--accent': '#D84315', '--border': '#BCAAA4' } },
-                ocean: { id: 'ocean', name: 'Ocean Mist', colors: { '--bg-main': '#E6F4F1', '--bg-sidebar': '#F0FCF8', '--bg-header': '#4A7C8F', '--text-main': '#2C4A52', '--text-header': '#F0FCF8', '--text-muted': '#6B9096', '--primary': '#4A7C8F', '--accent': '#E07A5F', '--border': '#A4D0D0' } },
-                rose: { id: 'rose', name: 'Old Rose', colors: { '--bg-main': '#F4E4E4', '--bg-sidebar': '#FFF5F5', '--bg-header': '#8E5555', '--text-main': '#5C3D3D', '--text-header': '#FFF5F5', '--text-muted': '#A87C7C', '--primary': '#8E5555', '--accent': '#D47E7E', '--border': '#C9A9A9' } },
-                paper: { id: 'paper', name: 'Antique Paper', colors: { '--bg-main': '#F0EAD6', '--bg-sidebar': '#FAF9F6', '--bg-header': '#8B5A2B', '--text-main': '#4B3621', '--text-header': '#FAF9F6', '--text-muted': '#8D7B68', '--primary': '#8B5A2B', '--accent': '#CD853F', '--border': '#D2B48C' } }
+                ocean: { id: 'ocean', name: 'Ocean Mist', colors: { '--bg-main': '#E6F4F1', '--bg-sidebar': '#F0FCF8', '--bg-header': '#4A7C8F', '--text-main': '#2C4A52', '--text-header': '#F0FCF8', '--text-muted': '#6B9096', '--primary': '#4A7C8F', '--accent': '#E07A5F', '--border': '#A4D0D0' } }
             };
 
             const defaultApps = [
                 { id: 1, name: 'Google', url: 'https://www.google.com', icon: 'https://www.google.com/favicon.ico', category: 'Knowledge' },
                 { id: 2, name: 'YouTube', url: 'https://www.youtube.com', icon: 'https://www.youtube.com/s/desktop/10c3c403/img/favicon_144x144.png', category: 'Entertainment' },
                 { id: 3, name: 'Facebook', url: 'https://www.facebook.com', icon: 'https://static.xx.fbcdn.net/rsrc.php/yD/r/d4ZIVX-5C-b.ico', category: 'Social' },
-                { id: 4, name: 'Instagram', url: 'https://www.instagram.com', icon: 'https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHk_8a.png', category: 'Social' },
-                { id: 5, name: 'Netflix', url: 'https://www.netflix.com', icon: 'https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico', category: 'Entertainment' },
-                { id: 6, name: 'ChatGPT', url: 'https://chat.openai.com', icon: 'https://chat.openai.com/favicon.ico', category: 'Tools' }
+                { id: 4, name: 'ChatGPT', url: 'https://chat.openai.com', icon: 'https://chat.openai.com/favicon.ico', category: 'Tools' }
             ];
 
             const categories = [
@@ -111,7 +99,6 @@
                 { id: 'All', name: 'ทั้งหมด', icon: <LayoutGrid size={18} /> }
             ];
 
-            // States
             const [apps, setApps] = useState(() => JSON.parse(localStorage.getItem('myapp_data_v9')) || defaultApps);
             const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('myapp_theme_v9') || 'dark');
             const [config, setConfig] = useState(() => JSON.parse(localStorage.getItem('myapp_config_v9')) || { clock24h: true, animations: true, layout: 'grid', sheetUrl: DEFAULT_SHEET_URL });
@@ -141,11 +128,8 @@
             
             useEffect(() => {
                 const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-                return () => clearInterval(timer);
-            }, []);
-
-            useEffect(() => {
                 if(config.sheetUrl) fetchAppsFromSheet(config.sheetUrl, false);
+                return () => clearInterval(timer);
             }, []);
 
             const fetchAppsFromSheet = async (url, showAlert = true) => {
@@ -164,9 +148,9 @@
 
                     if (newSheetApps.length > 0) {
                         setApps(newSheetApps);
-                        if (showAlert) alert(`ซิงค์สำเร็จ! ${newSheetApps.length} รายการ`);
+                        if (showAlert) alert(`ซิงค์ข้อมูลสำเร็จ! พบ ${newSheetApps.length} รายการ`);
                     } else if (showAlert) alert('ไม่พบข้อมูลใน CSV');
-                } catch (error) { console.error(error); if (showAlert) alert('เกิดข้อผิดพลาดในการดึงข้อมูล'); }
+                } catch (error) { if (showAlert) alert('เกิดข้อผิดพลาดในการดึงข้อมูล'); }
                 finally { setIsSyncing(false); }
             };
 
@@ -199,17 +183,18 @@
                 const seconds = currentTime.getSeconds(), minutes = currentTime.getMinutes(), hours = currentTime.getHours();
                 const secDeg = seconds * 6, minDeg = minutes * 6 + seconds * 0.1, hourDeg = (hours % 12) * 30 + minutes * 0.5;
                 return (
-                    <div onClick={() => setClockMode((prev) => (prev + 1) % 3)} className="col-span-2 md:col-span-3 lg:col-span-3 row-span-1 h-48 md:h-52 p-6 rounded-3xl flex items-center justify-center relative overflow-hidden group border shadow-sm cursor-pointer select-none" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
-                        <div className="absolute top-4 right-4 opacity-30 transition-opacity group-hover:opacity-100"><Clock size={20} style={{ color: 'var(--accent)' }} /></div>
+                    // ปรับ col-span-1 เพื่อให้แสดงผลครึ่งหน้าจอบนมือถือ
+                    <div onClick={() => setClockMode((prev) => (prev + 1) % 3)} className="col-span-1 md:col-span-3 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex items-center justify-center relative overflow-hidden group border shadow-sm cursor-pointer select-none" style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--border)' }}>
+                        <div className="absolute top-2 right-2 md:top-4 md:right-4 opacity-30 transition-opacity group-hover:opacity-100"><Clock size={16} className="md:w-5 md:h-5" style={{ color: 'var(--accent)' }} /></div>
                         {clockMode === 0 && (
                             <div className="flex flex-col items-center md:items-start w-full animate-in fade-in zoom-in duration-300">
-                                <p className="text-sm md:text-base font-medium opacity-70 mb-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</div>
-                                <div className="h-1.5 w-24 bg-gradient-to-r from-[var(--accent)] to-transparent rounded-full mt-4 opacity-60"></div>
+                                <p className="text-xs md:text-base font-medium opacity-70 mb-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                                <div className="text-3xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: !config.clock24h })}</div>
+                                <div className="h-1 md:h-1.5 w-16 md:w-24 bg-gradient-to-r from-[var(--accent)] to-transparent rounded-full mt-2 md:mt-4 opacity-60"></div>
                             </div>
                         )}
                         {clockMode === 1 && (
-                            <div className="relative w-32 h-32 md:w-40 md:h-40 animate-in spin-in-12 duration-500">
+                            <div className="relative w-24 h-24 md:w-40 md:h-40 animate-in spin-in-12 duration-500">
                                 <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
                                     <circle cx="50" cy="50" r="48" fill="var(--bg-sidebar)" stroke="var(--border)" strokeWidth="2" />
                                     {[...Array(12)].map((_, i) => (<line key={i} x1="50" y1="6" x2="50" y2={i % 3 === 0 ? "12" : "8"} transform={`rotate(${i * 30} 50 50)`} stroke="var(--text-muted)" strokeWidth={i % 3 === 0 ? "3" : "1"} />))}
@@ -222,8 +207,8 @@
                         )}
                         {clockMode === 2 && (
                             <div className="flex flex-col items-center animate-in slide-in-from-bottom-4 duration-300">
-                                <div className="text-6xl md:text-8xl font-bold tracking-widest font-mono" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}</div>
-                                <div className="text-xl md:text-2xl font-mono opacity-80 mt-2" style={{ color: 'var(--accent)' }}>{currentTime.getSeconds().toString().padStart(2, '0')}</div>
+                                <div className="text-4xl md:text-8xl font-bold tracking-widest font-mono" style={{ color: 'var(--text-header)' }}>{currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}</div>
+                                <div className="text-lg md:text-2xl font-mono opacity-80 mt-1 md:mt-2" style={{ color: 'var(--accent)' }}>{currentTime.getSeconds().toString().padStart(2, '0')}</div>
                             </div>
                         )}
                     </div>
@@ -231,11 +216,12 @@
             };
 
             const CalendarWidget = () => (
-                <div onClick={() => { if (!showLargeCalendar) { setCalendarDate(new Date()); setSelectedDateEvents(null); } setShowLargeCalendar(!showLargeCalendar); }} className={`col-span-2 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52 p-6 rounded-3xl flex flex-col items-center justify-center border shadow-sm cursor-pointer transition-all active:scale-95 ${showLargeCalendar ? 'ring-2 ring-[var(--accent)] bg-[var(--primary)]' : 'hover:brightness-110'}`} style={{ backgroundColor: showLargeCalendar ? 'var(--primary)' : 'var(--bg-sidebar)', borderColor: 'var(--border)' }} title="ปิดปฏิทิน">
+                // ปรับ col-span-1 เพื่อให้แสดงผลครึ่งหน้าจอบนมือถือ (อยู่ในแถวเดียวกับ Clock)
+                <div onClick={() => { if (!showLargeCalendar) { setCalendarDate(new Date()); setSelectedDateEvents(null); } setShowLargeCalendar(!showLargeCalendar); }} className={`col-span-1 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52 p-4 md:p-6 rounded-3xl flex flex-col items-center justify-center border shadow-sm cursor-pointer transition-all active:scale-95 ${showLargeCalendar ? 'ring-2 ring-[var(--accent)] bg-[var(--primary)]' : 'hover:brightness-110'}`} style={{ backgroundColor: showLargeCalendar ? 'var(--primary)' : 'var(--bg-sidebar)', borderColor: 'var(--border)' }} title="ปิดปฏิทิน">
                     <div className="flex flex-col items-center">
-                        <span className="text-xs uppercase font-bold tracking-widest opacity-60 mb-1" style={{ color: 'var(--text-muted)' }}>{currentTime.toLocaleDateString('en-US', { month: 'long' })}</span>
+                        <span className="text-[10px] md:text-xs uppercase font-bold tracking-widest opacity-60 mb-1" style={{ color: 'var(--text-muted)' }}>{currentTime.toLocaleDateString('en-US', { month: 'long' })}</span>
                         <span className="text-5xl md:text-6xl font-bold leading-none" style={{ color: 'var(--accent)' }}>{currentTime.getDate()}</span>
-                        <span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long' })}</span>
+                        <span className="text-[10px] md:text-xs opacity-60 mt-1" style={{ color: 'var(--text-main)' }}>{currentTime.toLocaleDateString('th-TH', { weekday: 'long' })}</span>
                         {getEventForDate(currentTime.getDate(), currentTime.getMonth()) && (<div className="mt-2 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--accent)] text-white"><Star size={8} fill="currentColor" /> วันสำคัญ</div>)}
                     </div>
                 </div>
@@ -289,6 +275,7 @@
 
             return (
                 <div className={`flex flex-col h-screen overflow-hidden font-sans transition-colors duration-500`} style={themeStyles}>
+                    {/* Header */}
                     <header className="h-16 flex items-center justify-between px-4 md:px-6 shadow-md z-40 flex-shrink-0 transition-colors duration-300" style={{ backgroundColor: 'var(--bg-header)', color: 'var(--text-header)', borderBottom: '1px solid var(--border)' }}>
                         <div className="flex items-center gap-3">
                             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-1 hover:bg-white/10 rounded"><Menu size={24} /></button>
@@ -316,6 +303,7 @@
                         </div>
                     </header>
 
+                    {/* Body */}
                     <div className="flex flex-grow overflow-hidden relative">
                         <aside className={`fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 flex flex-col mt-16 md:mt-0 h-[calc(100vh-4rem)] md:h-auto shadow-xl md:shadow-none border-r`} style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
                             <nav className="flex-grow p-4 space-y-1 overflow-y-auto">
@@ -340,9 +328,8 @@
                                     {config.layout === 'bento' && (
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mb-8">
                                             <ClockWidget />
-                                            <div className="col-span-2 md:col-span-2 lg:col-span-3 row-span-1 h-48 md:h-52" onClick={() => setShowLargeCalendar(!showLargeCalendar)}>
-                                                <CalendarWidget />
-                                            </div>
+                                            {/* Wrapper div not needed for layout but useful if we want to handle click on entire area */}
+                                            <CalendarWidget />
                                         </div>
                                     )}
 
