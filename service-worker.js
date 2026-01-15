@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-apps-cache-v2';
+const CACHE_NAME = 'my-apps-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -13,6 +13,9 @@ const urlsToCache = [
 
 // Install Event - Cache Files
 self.addEventListener('install', (event) => {
+  // บังคับให้ Service Worker ใหม่ทำงานทันที
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -20,7 +23,6 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
-  self.skipWaiting();
 });
 
 // Fetch Event - Serve from Cache if available
@@ -51,5 +53,6 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // ควบคุมทุกแท็บทันทีที่ Activate
   self.clients.claim();
 });
