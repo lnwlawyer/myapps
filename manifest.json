@@ -1,10 +1,11 @@
 {
     "name": "My Apps",
     "short_name": "My Apps",
-    "start_url": "index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
+    "orientation": "portrait-primary",
     "icons": [
         {
             "src": "https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg",
@@ -18,4 +19,5 @@
         }
     ]
 }
+
 
