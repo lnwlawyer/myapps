@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-apps-cache-v1';
+const CACHE_NAME = 'my-apps-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const urlsToCache = [
   'https://unpkg.com/@babel/standalone/babel.min.js',
   'https://esm.sh/react@18.2.0',
   'https://esm.sh/react-dom@18.2.0/client',
-  'https://esm.sh/lucide-react@0.263.1'
+  'https://esm.sh/lucide-react@0.263.1',
+  'https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg'
 ];
 
 // Install Event - Cache Files
@@ -19,6 +20,7 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
 });
 
 // Fetch Event - Serve from Cache if available
@@ -49,4 +51,5 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  self.clients.claim();
 });
