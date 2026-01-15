@@ -1,7 +1,7 @@
 {
     "name": "My Apps",
     "short_name": "My Apps",
-    "start_url": ".",
+    "start_url": "index.html",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
@@ -18,3 +18,4 @@
         }
     ]
 }
+
