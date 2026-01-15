@@ -1,5 +1,5 @@
 // Basic Service Worker to enable PWA installability
-const CACHE_NAME = 'myapps-v1';
+const CACHE_NAME = 'My Apps-v1';
 const urlsToCache = [
   './index.html',
   './manifest.json'
@@ -21,4 +21,5 @@ self.addEventListener('fetch', (event) => {
         return response || fetch(event.request);
       })
   );
+
 });
