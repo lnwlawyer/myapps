@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/54721899593_5d789ef073_w.jpg">
     
     <!-- เชื่อมโยงไปยังไฟล์ manifest.json ที่แยกออกมา -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -70,16 +70,6 @@
 <body class="bg-black text-white h-screen overflow-hidden">
     <div id="root"></div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(registration => console.log('ServiceWorker registered'))
-                    .catch(err => console.log('ServiceWorker failed: ', err));
-            });
-        }
-    </script>
-    
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
@@ -378,8 +368,8 @@
                                                     <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-header)' }}><Briefcase size={18} style={{ color: 'var(--accent)' }}/> ประวัติการทำงาน</h3>
                                                     <ul className="space-y-4 text-sm" style={{ color: 'var(--text-main)' }}>
                                                         <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--accent)' }}></div><span className="opacity-90">ผู้อำนวยการส่วนกำหนดสิทธิในที่ดินและควบคุมทะเบียนที่ดิน</span></li>
-                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">นักวิชาการที่ดินชำนาญการพิเศษ สำนักมาตรฐานการทะเบียนที่ดิน</span></li>
-                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">เจ้าพนักงานที่ดินอำเภอไทรโยค จังหวัดกาญจนบุรี</span></li>
+                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">สำนักมาตรฐานการทะเบียนที่ดิน</span></li>
+                                                        <li className="flex gap-3 items-start"><div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: 'var(--text-muted)' }}></div><span className="opacity-70">กรมที่ดิน กระทรวงมหาดไทย</span></li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -389,32 +379,24 @@
                                                 <div className="rounded-3xl p-6 border shadow-sm flex items-start gap-4" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
                                                     <div className="p-3 rounded-2xl bg-[var(--primary)] text-[var(--accent)]"><GraduationCap size={24} /></div>
                                                     <div>
-                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาตรี</h3>
-                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>นิติศาสตรบัณฑิต (LL.B.)</p>
-                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>มหาวิทยาลัยนเรศวร</p>
+                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาโท</h3>
+                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>รัฐประศาสนศาสตรมหาบัณฑิต (MPA)</p>
+                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>สถาบันบัณฑิตพัฒนบริหารศาสตร์ (NIDA)</p>
                                                     </div>
                                                 </div>
                                                 <div className="rounded-3xl p-6 border shadow-sm flex items-start gap-4" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
                                                     <div className="p-3 rounded-2xl bg-[var(--primary)] text-[var(--text-muted)]"><GraduationCap size={24} /></div>
                                                     <div>
-                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาโท</h3>
-                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>นิติศาสตรมหาบัณฑิต (LL.M.)</p>
-                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>มหาวิทยาลัยพะเยา</p>
-                                                    </div>
-                                                </div>
-                                                    <div className="rounded-3xl p-6 border shadow-sm flex items-start gap-4" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
-                                                    <div className="p-3 rounded-2xl bg-[var(--primary)] text-[var(--text-muted)]"><GraduationCap size={24} /></div>
-                                                    <div>
-                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>เนติบัณฑิต</h3>
-                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>เนติบัณฑิตไทย</p>
-                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>สำนักอบรมศึกษากฎหมายแห่งเนติบัณฑิตนสภา</p>
+                                                        <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--text-header)' }}>ปริญญาตรี</h3>
+                                                        <p className="font-medium" style={{ color: 'var(--text-main)' }}>นิติศาสตรบัณฑิต (LL.B.)</p>
+                                                        <p className="text-sm opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>มหาวิทยาลัยรามคำแหง</p>
                                                     </div>
                                                 </div>
                                                 <div className="rounded-3xl p-6 border shadow-sm" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}>
                                                     <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-header)' }}><Award size={18} style={{ color: 'var(--accent)' }}/> การฝึกอบรม</h3>
                                                     <ul className="space-y-3 text-sm" style={{ color: 'var(--text-main)' }}>
-                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตร ...</span></li>
-                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตร ...</span></li>
+                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตรนักบริหารระดับสูง (นบส.) รุ่นที่ XX</span></li>
+                                                        <li className="flex gap-3 items-start"><Check size={16} className="mt-0.5 text-[var(--accent)] flex-shrink-0" /><span>หลักสูตรกฎหมายปกครองสำหรับผู้บริหาร</span></li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -457,9 +439,9 @@
                                                     <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--text-header)' }}>ที่ทำงาน</h3>
                                                     <p className="text-sm opacity-80 leading-relaxed" style={{ color: 'var(--text-main)' }}>สำนักมาตรฐานการทะเบียนที่ดิน กรมที่ดิน<br/>ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษาฯ อาคารรัฐประศาสนภักดี (อาคารบี)<br/>ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร 10210</p>
                                                 </div>
-                                                <a href="tel:021415555" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Phone size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>โทรศัพท์</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>0-2141-5767</span></a>
-                                                <a href="mailto:contact@dol.go.th" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Mail size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>อีเมล</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>phonga2730@gmail.com</span></a>
-                                                <a href="https://www.dol.go.th" target="_blank" className="col-span-1 md:col-span-2 rounded-3xl p-4 border shadow-sm flex items-center justify-between hover:bg-[var(--primary)] transition-colors px-6" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><div className="flex items-center gap-3"><Globe size={20} style={{ color: 'var(--accent)' }} /><span className="font-medium" style={{ color: 'var(--text-main)' }}>เว็บไซต์กรมที่ดิน</span></div><ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />www.dol.go.th</a>
+                                                <a href="tel:021415555" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Phone size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>โทรศัพท์</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>0-2141-5555</span></a>
+                                                <a href="mailto:contact@dol.go.th" className="rounded-3xl p-6 border shadow-sm flex flex-col items-center justify-center hover:bg-[var(--primary)] transition-colors group" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><Mail size={32} className="mb-3 text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" /><span className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>อีเมล</span><span className="text-xs opacity-60 mt-1" style={{ color: 'var(--text-muted)' }}>contact@dol.go.th</span></a>
+                                                <a href="https://www.dol.go.th" target="_blank" className="col-span-1 md:col-span-2 rounded-3xl p-4 border shadow-sm flex items-center justify-between hover:bg-[var(--primary)] transition-colors px-6" style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border)' }}><div className="flex items-center gap-3"><Globe size={20} style={{ color: 'var(--accent)' }} /><span className="font-medium" style={{ color: 'var(--text-main)' }}>เว็บไซต์กรมที่ดิน</span></div><ChevronRight size={16} style={{ color: 'var(--text-muted)' }} /></a>
                                             </div>
                                         )}
                                     </div>
@@ -493,6 +475,20 @@
 
         const root = createRoot(document.getElementById('root'));
         root.render(<WebAppLauncher />);
+    </script>
+
+    <!-- ลงทะเบียน Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, (err) => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
